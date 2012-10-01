@@ -1,0 +1,33 @@
+http://www.rvl.io/mariatsji/scala-actors
+
+SCALA ACTORS
+The most awesome thing ever?
+
+Adressing problems with concurrency
+- Shared states and locks
+
+
+Actors = clerks with inboxes
+
+Best practices
+- Use only messages to communicate with an actor
+- Actors should not block
+- Prefer immutable messages
+- Make messages self-contained
+- Actors like bosses and minions
+
+Akkar
+"Todarodes sagittatus" er en tiarmet stimsvømmende blekksprut
+- Multiple tentacles get the jobs done!
+- An Akkar has a highly complex nervous system, only part of which is localized in its brain.
+- Two-thirds of an octopus's neurons are found in the nerve cords of its arms, which have limited functional autonomy.
+- Octopus arms show a variety of complex reflex actions that persist even when they have no input from the brain.
+
+Akka
+- The digital Akkar (also Actor Kernel palindrome..)
+- Toolkit & Runtime for building concurrent, distributed and fault-tolerant event-driven apps on the JVM
+- Scala and Java version
+- Concurrency through akka.Actor
+- Distribution through Remoting
+- Fault-Tolerance through supervision
+

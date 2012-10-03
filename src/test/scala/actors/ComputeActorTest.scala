@@ -12,15 +12,20 @@ class ComputeActorTest extends Specification {
     "compute length of string" in {
       val actor = new ComputeActor
       actor.start
-      val s = actor !? "hello"
-      s must beEqualTo(5)
+      val len = actor !? "hello"
+      len must beEqualTo(5)
     }
-
     "multiply numbers" in {
       val actor = new ComputeActor
       actor.start
       val n = actor !? 2
       n must beEqualTo(4)
+    }
+    "compute arbitrary work" in {
+      val actor = new ComputeActor
+      actor.start
+      val result = actor !? new SumSequence(1, 3)
+      result must beEqualTo(6)
     }
   }
 }

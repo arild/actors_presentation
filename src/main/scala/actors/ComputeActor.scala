@@ -15,17 +15,10 @@ class SumSequence(start: Int, stop: Int) extends Work {
 
 class ComputeActor extends Actor {
   def act() {
-    while (true) {
-      receive {
-        case s: String =>
-          println("received : " + s)
-          sender ! s.length
-        case n: Int =>
-          sender ! n * n
-        case f: (Int => Boolean) =>
-          sender ! f(2)
-      }
+    receive {
+      case s: String => sender ! s.length
+      case n: Int => sender ! n * n
+      case w: Work => sender ! w.perform()
     }
   }
-
 }

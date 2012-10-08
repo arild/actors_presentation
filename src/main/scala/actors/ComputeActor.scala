@@ -1,7 +1,7 @@
 package actors
 
 import scala.actors.Actor
-import scala.actors.Futures
+import scala.actors.Futures._
 
 abstract class Work {
   def perform(): Any
@@ -14,7 +14,9 @@ class SumSequence(start: Int, stop: Int) extends Work {
   }
 }
 
-case class HeavyWork
+case object HeavyWork {
+  
+}
 
 //class HeavyWork(x: Int) extends Work {
 //  def perform(): Int = {
@@ -24,21 +26,19 @@ case class HeavyWork
 //}
 
 class ComputeActor extends Actor {
+  def computeSquare(i: Int) = i * i
+  def computeLength(s: String) = s.length()
+
   def act() {
     receive {
-      case s: String => sender ! s.length
-      case n: Int => sender ! n * n
+      case i: Int => sender ! computeSquare(i)
+      case s: String => sender ! computeLength(s);
       case w: Work => sender ! w.perform()
-      case h: HeavyWork => sender ! Futures.future {
-        //      Thread.sleep(5000)
-        println("omg, the future arrived")
-        42
-      }
     }
   }
 
-  def doSomeHeavyLifting() = Futures.future {
-    Futures.future {
+  def doSomeHeavyLifting() = future {
+    future {
       //      Thread.sleep(5000)
       println("omg, the future arrived")
       42
@@ -48,7 +48,7 @@ class ComputeActor extends Actor {
 
 object Asdf {
   def main(args: Array[String]) {
-    val f = Futures.future {
+    val f = future {
       //      Thread.sleep(5000)
       println("omg, the future arrived")
       42

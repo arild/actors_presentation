@@ -5,6 +5,7 @@ import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import scala.actors._
 import scala.actors.Futures._
+import work._
 
 @RunWith(classOf[JUnitRunner])
 class ComputeActorTest extends Specification {

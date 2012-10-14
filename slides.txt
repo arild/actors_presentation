@@ -71,6 +71,12 @@ println("result is " + result())
 - A Promise is a write-handle to a single value (write-once) that should be made available within a specific time-frame
 - http://skillsmatter.com/podcast/scala/the-future-i-was-promised
 
+* Future monadic Operations
+def foreach[U](f: T => U): Unit
+def map[S](f: T => S): Future[S]
+def flatMap[S](f: T => Future[S]): Future[S]
+def filter(p: T => Boolean): Future[T]
+
 * Future code example
 #codebox
 println("Test print before future")

@@ -35,4 +35,17 @@ object MyFutures {
       res.sum
     }
   }
+  
+  def findRiskySumFallbackOnSafeSum(risky: SumSequence, safe: SumSequence) : Promise[Int] = {
+    val p = promise[Int]()
+    val riskyRes = future {
+      risky.perform()
+    }
+    val safeRes = future {
+      safe.perform()
+    }
+    p completeWith {
+    	riskyRes recoverWith { case e: IllegalArgumentException => safeRes }
+    }
+  }
 }

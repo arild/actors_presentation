@@ -7,6 +7,7 @@ import work._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.util.Duration
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class ComputeActorTest extends Specification {
@@ -15,7 +16,7 @@ class ComputeActorTest extends Specification {
     val t0 = System.currentTimeMillis()
     val result = block
     val t1 = System.currentTimeMillis()
-    if (t1 - t0 > 50)
+    if (t1 - t0 > 100)
       failure("You are too slow to promise")
     result
   }
@@ -39,6 +40,20 @@ class ComputeActorTest extends Specification {
       val result = Await.result(promise.future, Duration.Inf)
       println(result)
       result must beEqualTo(2503387L) 
+    }
+    "finds risky sum fallbacks on safe" in {
+      val mightBeNegative = Random.nextInt(2) - 1
+      val riskyWork = new SumSequence(mightBeNegative, 6)
+      val safeWork = new SumSequence(0, 5)
+      val promise = time { MyFutures.findRiskySumFallbackOnSafeSum(riskyWork, safeWork) }
+      if(mightBeNegative < 0) {
+        val result = Await.result(promise.future, Duration.Inf)
+  		result must beEqualTo(15)
+      } else {
+        val result = Await.result(promise.future, Duration.Inf)
+        result must beEqualTo(21)
+      }
+      
     }
   }
 }

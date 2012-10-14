@@ -1,8 +1,8 @@
 package actors
 
-import org.specs2.mutable._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
+import org.specs2.mutable._
 import scala.actors._
 import scala.actors.Futures._
 import work._

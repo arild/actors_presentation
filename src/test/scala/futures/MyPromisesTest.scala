@@ -1,14 +1,13 @@
 package futures
 
-import org.specs2.mutable._
-import org.specs2.runner.JUnitRunner
 import org.junit.runner.RunWith
-import work._
+import org.specs2.runner.JUnitRunner
+import org.specs2.mutable._
 import scala.concurrent.future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.util.Duration
-import scala.util.Random
+import work._
 
 @RunWith(classOf[JUnitRunner])
 class MyPromisesTest extends Specification {

@@ -5,16 +5,10 @@ import scala.concurrent.future
 import scala.concurrent.promise
 import scala.concurrent.Promise
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
 import scala.concurrent.util.Duration
-import scala.util.Random
-
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Random
-import work._
-import com.sun.xml.internal.bind.v2.schemagen.xmlschema.SimpleExtension
 import scala.util.Try
+import work._
 
 object MyPromises {
 

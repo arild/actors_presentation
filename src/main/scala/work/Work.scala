@@ -4,9 +4,10 @@ abstract class Work {
   def perform(): Any
 }
 
-class SumSequence(start: Int, stop: Int) extends Work {
+class SumSequence(start: Int, stop: Int, delay: Long = 0) extends Work {
   def perform(): Int = {
     require(start >= 0)
+    Thread.sleep(delay)
     (start to stop).sum
   }
 }
@@ -18,27 +19,28 @@ class MaxFactor(n: Long) extends Work {
   }
 }
 
-class FactorNumber(n: Long) extends Work {
+class FactorNumber(n: Long, delay: Long = 0) extends Work {
   def perform(): List[Long] = {
-    faktor(n)
+    Thread.sleep(delay)
+    factor(n)
   }
 
   /**
    * Faktoriserer et tall, på naivt vis
    */
-  def faktor(n: Long): List[Long] = {
+  def factor(n: Long): List[Long] = {
 
-    def faktor0(a: Long, acc: List[Long]): List[Long] = {
+    def factor0(a: Long, acc: List[Long]): List[Long] = {
       def isFaktor(f: Long, p: Long): Boolean = p % f == 0
       if (a > 1) {
         if (isFaktor(a, n))
-          faktor0(a - 1, List(a) ::: acc)
+          factor0(a - 1, List(a) ::: acc)
         else
-          faktor0(a - 1, acc)
+          factor0(a - 1, acc)
       } else {
         acc
       }
     }
-    faktor0(n - 1, List())
+    factor0(n - 1, List())
   }
 }

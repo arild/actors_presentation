@@ -23,8 +23,8 @@ class MyPromisesTest extends Specification {
     result
   }
   
-  def busySpin() = Thread.sleep(PROMISE_TIME_LIMIT + 1)
-
+  def delayFactorNumber(n: Long): FactorNumber = new FactorNumber(n, PROMISE_TIME_LIMIT + 1)
+  
   "MyPromises" should {
 
     "compute square" in {
@@ -35,7 +35,7 @@ class MyPromisesTest extends Specification {
 
     "compute square of future value" in {
       val futureValue = future {
-        busySpin()
+        Thread.sleep(PROMISE_TIME_LIMIT + 1)
         2
       }
       val promise = time { MyPromises.computeSquare(futureValue) }
@@ -44,24 +44,23 @@ class MyPromisesTest extends Specification {
     }
 
     "find max factor" in {
-      val work = new FactorNumber(4723755L)
+      val work = delayFactorNumber(49L)
       val promise = time { MyPromises.findMaxFactor(work) }
       val result = Await.result(promise.future, Duration.Inf)
-      result must beEqualTo(1574585L)
+      result must beEqualTo(7L)
     }
 
     "find max factor of future factors" in {
       val futureFactors = future {
-        busySpin()
-        new FactorNumber(4723755L)
+        delayFactorNumber(49L)
       }
       val promise = time { MyPromises.findMaxFactor(futureFactors) }
       val result = Await.result(promise.future, Duration.Inf)
-      result must beEqualTo(1574585L)
+      result must beEqualTo(7L)
     }
 
     "do risky work or fallback on safe work" in {
-      // All work will exceed the time limit
+      // Each work will exceed the time limit
       val shouldNotDoWork = new SumSequence(0, 4, PROMISE_TIME_LIMIT + 1)
       val safeWork = new SumSequence(0, 5, PROMISE_TIME_LIMIT + 1)
       val riskyWork = new SumSequence(-1, 6, PROMISE_TIME_LIMIT + 1)
@@ -74,24 +73,22 @@ class MyPromisesTest extends Specification {
       result2 must beEqualTo(15)
     }
 
-    "find sum of max factors" in {
-      val work = Seq(new FactorNumber(472375L), new FactorNumber(4872335L), new FactorNumber(7172225L))
-      val promise = time { MyPromises.findSumOfMaxFactors(work) }
+    "find sum of all max factors" in {
+      val work = Seq(delayFactorNumber(21L), delayFactorNumber(49L), delayFactorNumber(12L))
+      val promise = time { MyPromises.findSumOfAllMaxFactors(work) }
       val result = Await.result(promise.future, Duration.Inf)
-      result must beEqualTo(2503387L)
+      result must beEqualTo(20L)
     }
     
-    "findMaxFactorOfAllMaxFactorsInParallel" in {
+    "find max factor of all max factors in parallel" in {
       // Each work will take at least 100 milliseconds
-      def wrap(n: Long): FactorNumber = new FactorNumber(n, PROMISE_TIME_LIMIT + 1)
-      val work = Seq(wrap(49), wrap(12L), wrap(21L), wrap(54L))
+      val work = Seq(delayFactorNumber(49L), delayFactorNumber(12L), delayFactorNumber(21L), delayFactorNumber(54L))
       
       val promise = time { MyPromises.findMaxFactorOfAllMaxFactorsInParallel(work) }
       val t1 = System.currentTimeMillis()
       val result = Await.result(promise.future, Duration.Inf)
       result must beEqualTo(27)
       val totalExecutionTime = System.currentTimeMillis() - t1
-      // Requires multiple cores to pass
       totalExecutionTime must beLessThan(PROMISE_TIME_LIMIT * 4)
       println("Parallel execution time: " + totalExecutionTime)
     }

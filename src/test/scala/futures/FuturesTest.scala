@@ -27,11 +27,18 @@ class ComputeActorTest extends Specification {
       result must beEqualTo(4)
     }
     "find max factor" in {
-    	val work = new FactorNumber(4723755L)
-    	val promise = time { MyFutures.findMaxFactor(work) }
-    	val result = Await.result(promise.future, Duration.Inf)
-    	println(result)
-    	result must beEqualTo(1574585)
+      val work = new FactorNumber(4723755L)
+      val promise = time { MyFutures.findMaxFactor(work) }
+      val result = Await.result(promise.future, Duration.Inf)
+      println(result)
+      result must beEqualTo(1574585L)
+    }
+    "find sum of max factors" in {
+      val work = Seq(new FactorNumber(472375L), new FactorNumber(4872335L), new FactorNumber(7172225L))
+      val promise = time { MyFutures.findSumOfMaxFactors(work) }
+      val result = Await.result(promise.future, Duration.Inf)
+      println(result)
+      result must beEqualTo(2503387L) 
     }
   }
 }

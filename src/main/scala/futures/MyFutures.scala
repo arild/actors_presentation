@@ -27,4 +27,12 @@ object MyFutures {
 	  factors.max
 	}
   }
+  
+  def findSumOfMaxFactors(work: Seq[FactorNumber]) : Promise[Long] = {
+    val p = promise[Long]()
+    p completeWith future {
+      val res = work.map(w => w.perform().max)
+      res.sum
+    }
+  }
 }

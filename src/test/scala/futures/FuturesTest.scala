@@ -15,16 +15,23 @@ class ComputeActorTest extends Specification {
     val t0 = System.currentTimeMillis()
     val result = block
     val t1 = System.currentTimeMillis()
-    if (t1 - t0 > 100) 
+    if (t1 - t0 > 50)
       failure("You are too slow to promise")
     result
   }
 
   "MyFutures" should {
     "compute square" in {
-      val promise = MyFutures.computeSquare(2)
+      val promise = time { MyFutures.computeSquare(2) }
       val result = Await.result(promise.future, Duration.Inf)
-      result must time { beEqualTo(4) }
+      result must beEqualTo(4)
+    }
+    "find max factor" in {
+    	val work = new FactorNumber(4723755L)
+    	val promise = time { MyFutures.findMaxFactor(work) }
+    	val result = Await.result(promise.future, Duration.Inf)
+    	println(result)
+    	result must beEqualTo(1574585)
     }
   }
 }

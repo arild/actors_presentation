@@ -12,16 +12,19 @@ import work._
 import com.sun.xml.internal.bind.v2.schemagen.xmlschema.SimpleExtension
 import scala.util.Try
 
-
 object MyFutures {
   def computeSquare(n: Int): Promise[Int] = {
-      val p = promise[Int]()
-      p completeWith future {
-        println("Starting executing future")
-        Thread.sleep(3000)
-        n * n
-      }
-      println("computeSquare done");
-      p
+    val p = promise[Int]()
+    p completeWith future {
+      n * n
+    }
+  }
+  
+  def findMaxFactor(work: FactorNumber): Promise[Long] = {
+	val p = promise[Long]()
+    p completeWith future {
+	  val factors = work.perform()
+	  factors.max
+	}
   }
 }

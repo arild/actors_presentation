@@ -11,6 +11,13 @@ class SumSequence(start: Int, stop: Int) extends Work {
   }
 }
 
+class MaxFactor(n: Long) extends Work {
+  def perform(): Long = {
+    val factors = new FactorNumber(n).perform
+    factors.max
+  }
+}
+
 class FactorNumber(n: Long) extends Work {
   def perform(): List[Long] = {
     faktor(n)

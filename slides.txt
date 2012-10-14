@@ -20,6 +20,8 @@
 - Messages buffered in an inbox
 - Tends to be easier to reason about
 
+*Akkar - Actors in the real world
+
 *Example Actor
 - slide1
 import scala.actors.Actor
@@ -57,7 +59,7 @@ println("result is " + result())
 * Do exersices
 - git clone https://github.com/arild/actors_presentation.git
 - git checkout actors
-- Complete predefined tests for Actor and implementation Actor
+- Complete predefined tests for Actor and implementation of Actor
 - git checkout actors-solved
 
 * Futures
@@ -94,5 +96,11 @@ val f = future {
 val p = promise[Int]()
 p completeWith f
 p.f onSuccess { case s => println("Result " + s) }
+
+* Do Exersice
+- git branch futures
+- Complete predefined tests for Futures and implementation of Future
+- git checkout actors-solved
+
 
 

@@ -18,13 +18,12 @@ class MyPromisesTest extends Specification {
     val t0 = System.currentTimeMillis()
     val result = block
     val t1 = System.currentTimeMillis()
-    println("Time: " + (t1 - t0));
     if (t1 - t0 > PROMISE_TIME_LIMIT)
       failure("You are too slow to promise")
     result
   }
   
-  def busyWork() = Thread.sleep(PROMISE_TIME_LIMIT + 1)
+  def busySpin() = Thread.sleep(PROMISE_TIME_LIMIT + 1)
 
   "MyPromises" should {
 
@@ -36,7 +35,7 @@ class MyPromisesTest extends Specification {
 
     "compute square of future value" in {
       val futureValue = future {
-        busyWork()
+        busySpin()
         2
       }
       val promise = time { MyPromises.computeSquare(futureValue) }
@@ -53,7 +52,7 @@ class MyPromisesTest extends Specification {
 
     "find max factor of future factors" in {
       val futureFactors = future {
-        busyWork()
+        busySpin()
         new FactorNumber(4723755L)
       }
       val promise = time { MyPromises.findMaxFactor(futureFactors) }
@@ -79,7 +78,6 @@ class MyPromisesTest extends Specification {
       val work = Seq(new FactorNumber(472375L), new FactorNumber(4872335L), new FactorNumber(7172225L))
       val promise = time { MyPromises.findSumOfMaxFactors(work) }
       val result = Await.result(promise.future, Duration.Inf)
-      println(result)
       result must beEqualTo(2503387L)
     }
     

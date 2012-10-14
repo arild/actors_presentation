@@ -71,7 +71,6 @@ object MyPromises {
 //    val p = promise[Long]()
 //    p completeWith future {
 //      val maxFactors = work.map(w => w.perform.max)
-//      println(maxFactors)
 //      maxFactors.max
 //    }
   }

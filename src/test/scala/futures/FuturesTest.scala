@@ -4,6 +4,7 @@ import org.specs2.mutable._
 import org.specs2.runner.JUnitRunner
 import org.junit.runner.RunWith
 import work._
+import scala.concurrent.future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.util.Duration
@@ -27,6 +28,15 @@ class ComputeActorTest extends Specification {
       val result = Await.result(promise.future, Duration.Inf)
       result must beEqualTo(4)
     }
+    "compute square of future value" in {
+      val futureValue = future {
+        Thread.sleep(101);
+        2
+      }
+      val promise = time { MyFutures.computeSquare(futureValue) }
+      val result = Await.result(promise.future, Duration.Inf)
+      result must beEqualTo(4)
+    }
     "find max factor" in {
       val work = new FactorNumber(4723755L)
       val promise = time { MyFutures.findMaxFactor(work) }
@@ -39,21 +49,21 @@ class ComputeActorTest extends Specification {
       val promise = time { MyFutures.findSumOfMaxFactors(work) }
       val result = Await.result(promise.future, Duration.Inf)
       println(result)
-      result must beEqualTo(2503387L) 
+      result must beEqualTo(2503387L)
     }
     "finds risky sum fallbacks on safe" in {
       val mightBeNegative = Random.nextInt(2) - 1
       val riskyWork = new SumSequence(mightBeNegative, 6)
       val safeWork = new SumSequence(0, 5)
       val promise = time { MyFutures.findRiskySumFallbackOnSafeSum(riskyWork, safeWork) }
-      if(mightBeNegative < 0) {
+      if (mightBeNegative < 0) {
         val result = Await.result(promise.future, Duration.Inf)
-  		result must beEqualTo(15)
+        result must beEqualTo(15)
       } else {
         val result = Await.result(promise.future, Duration.Inf)
         result must beEqualTo(21)
       }
-      
+
     }
   }
 }

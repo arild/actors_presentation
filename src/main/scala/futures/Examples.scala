@@ -195,7 +195,7 @@ object Futures extends App {
   //  sumOfMultipleResultsWithPowerTools
   //  forComprehension
   // failureRecovery
-  //SimpleFutureExapmles
+  SimpleFutureExapmles.helloWorld
   //AdvancedFutureExamples
-  Promises
+  //Promises
 }

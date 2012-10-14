@@ -19,24 +19,30 @@ object MyFutures {
       n * n
     }
   }
-  
-  def findMaxFactor(work: FactorNumber): Promise[Long] = {
-	val p = promise[Long]()
-    p completeWith future {
-	  val factors = work.perform()
-	  factors.max
-	}
+
+  def computeSquare(f: Future[Int]): Promise[Int] = {
+    val newFuture = f.map(n => n * n)
+    val p = promise[Int]()
+    p completeWith newFuture
   }
-  
-  def findSumOfMaxFactors(work: Seq[FactorNumber]) : Promise[Long] = {
+
+  def findMaxFactor(work: FactorNumber): Promise[Long] = {
+    val p = promise[Long]()
+    p completeWith future {
+      val factors = work.perform()
+      factors.max
+    }
+  }
+
+  def findSumOfMaxFactors(work: Seq[FactorNumber]): Promise[Long] = {
     val p = promise[Long]()
     p completeWith future {
       val res = work.map(w => w.perform().max)
       res.sum
     }
   }
-  
-  def findRiskySumFallbackOnSafeSum(risky: SumSequence, safe: SumSequence) : Promise[Int] = {
+
+  def findRiskySumFallbackOnSafeSum(risky: SumSequence, safe: SumSequence): Promise[Int] = {
     val p = promise[Int]()
     val riskyRes = future {
       risky.perform()
@@ -45,7 +51,15 @@ object MyFutures {
       safe.perform()
     }
     p completeWith {
-    	riskyRes recoverWith { case e: IllegalArgumentException => safeRes }
+      riskyRes recoverWith { case e: IllegalArgumentException => safeRes }
     }
   }
+
+//  def promiseMultileSquares(futuresValues: Seq[Future[Int]]): Seq[Promise[Int]] = {
+//    val res = futuresValues.map(f => {
+//      val p = promise[Int]()
+//      p completeWith computeSquare(f)
+//    })
+//    
+//  }
 }

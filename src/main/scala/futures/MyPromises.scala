@@ -28,8 +28,7 @@ object MyPromises {
   def findMaxFactor(work: FactorNumber): Promise[Long] = {
     val p = promise[Long]()
     p completeWith future {
-      val factors = work.perform()
-      factors.max
+      work.perform.max
     }
   }
 
@@ -53,20 +52,26 @@ object MyPromises {
   def findSumOfAllMaxFactors(work: Seq[FactorNumber]): Promise[Long] = {
     val p = promise[Long]()
     p completeWith future {
-      work.map(w => w.perform.max).sum
+      work.map(w => w.perform.max) sum
     }
   }
 
   def findMaxFactorOfAllMaxFactorsInParallel(work: Seq[FactorNumber]): Promise[Long] = {
-    val p = promise[Long]()
-    val futureFactors: Seq[Future[Seq[Long]]] = work.map(w => future { w.perform })
-    p completeWith Future.fold(futureFactors)(0L)((r, c) => Math.max(r, c.max))
+	val p = promise[Long]()
+	val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
+    p completeWith Future.fold(futureFactors)(0L)((r, c) => Math.max(r, c))
+    
+    // Alternative approach
+    //    val p = promise[Long]()
+    //    val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
+    //    val res: Future[Seq[Long]] = Future.sequence(futureFactors)
+    //    p completeWith res.map(f => f.max)
   }
 }
 
 object Examples extends App {
-  
-  def helloWorld() = {
+
+  def futureHelloWorld() = {
     println("Test print before future")
     val s = "Hello"
     val f = future {
@@ -95,7 +100,7 @@ object Examples extends App {
     Await.ready(f2, Duration.Inf)
   }
 
-  helloWorld
+  futureHelloWorld
   //simpleTransformations
 }
 

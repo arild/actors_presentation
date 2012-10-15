@@ -11,7 +11,7 @@ import work._
 
 @RunWith(classOf[JUnitRunner])
 class MyPromisesTest extends Specification {
-  val PROMISE_TIME_LIMIT: Long = 101
+  val PROMISE_TIME_LIMIT: Long = 100
 
   def time[R](block: => R): R = {
     val t0 = System.currentTimeMillis()
@@ -22,7 +22,7 @@ class MyPromisesTest extends Specification {
     result
   }
   
-  def delayFactorNumber(n: Long): FactorNumber = new FactorNumber(n, PROMISE_TIME_LIMIT + 1)
+  def delayFactorNumber(n: Long): FactorNumber = new FactorNumber(n, PROMISE_TIME_LIMIT * 2)
   
   "MyPromises" should {
 
@@ -34,7 +34,7 @@ class MyPromisesTest extends Specification {
 
     "compute square of future value" in {
       val futureValue = future {
-        Thread.sleep(PROMISE_TIME_LIMIT + 1)
+        Thread.sleep(PROMISE_TIME_LIMIT * 2)
         2
       }
       val promise = time { MyPromises.computeSquare(futureValue) }
@@ -88,7 +88,7 @@ class MyPromisesTest extends Specification {
       val result = Await.result(promise.future, Duration.Inf)
       result must beEqualTo(27)
       val totalExecutionTime = System.currentTimeMillis() - t1
-      totalExecutionTime must beLessThan(PROMISE_TIME_LIMIT * 4)
+      totalExecutionTime must beLessThan(PROMISE_TIME_LIMIT * 7)
       println("Parallel execution time: " + totalExecutionTime)
     }
   }

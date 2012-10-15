@@ -12,61 +12,20 @@ import work._
 
 object MyPromises {
 
-  def computeSquare(n: Int): Promise[Int] = {
-    val p = promise[Int]()
-    p completeWith future {
-      n * n
-    }
-  }
+  def computeSquare(n: Int): Promise[Int] = ???
 
-  def computeSquare(f: Future[Int]): Promise[Int] = {
-    val newFuture = f.map(n => n * n)
-    val p = promise[Int]()
-    p completeWith newFuture
-  }
+  def computeSquare(f: Future[Int]): Promise[Int] = ???
 
-  def findMaxFactor(work: FactorNumber): Promise[Long] = {
-    val p = promise[Long]()
-    p completeWith future {
-      work.perform.max
-    }
-  }
+  def findMaxFactor(work: FactorNumber): Promise[Long] = ???
 
-  def findMaxFactor(work: Future[FactorNumber]): Promise[Long] = {
-    val p = promise[Long]()
-    val newFuture = work.map(w => w.perform.max)
-    p completeWith newFuture
-  }
+  def findMaxFactor(work: Future[FactorNumber]): Promise[Long] = ???
 
-  def computeRiskySumFallbackOnSafeSum(riskyWork: SumSequence, safeWork: SumSequence): Promise[Int] = {
-    val p = promise[Int]()
-    val riskyRes = future { riskyWork.perform }
-    val safeRes = future { safeWork.perform }
-    p completeWith {
-      riskyRes recoverWith {
-        case e: IllegalArgumentException => safeRes
-      }
-    }
-  }
+  def computeRiskySumFallbackOnSafeSum(riskyWork: SumSequence, safeWork: SumSequence): Promise[Int] = ???
 
-  def findSumOfAllMaxFactors(work: Seq[FactorNumber]): Promise[Long] = {
-    val p = promise[Long]()
-    p completeWith future {
-      work.map(w => w.perform.max) sum
-    }
-  }
+  def findSumOfAllMaxFactors(work: Seq[FactorNumber]): Promise[Long] = ???
 
-  def findMaxFactorOfAllMaxFactorsInParallel(work: Seq[FactorNumber]): Promise[Long] = {
-    val p = promise[Long]()
-    val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
-    p completeWith Future.fold(futureFactors)(0L)((r, c) => Math.max(r, c))
+  def findMaxFactorOfAllMaxFactorsInParallel(work: Seq[FactorNumber]): Promise[Long] = ???
 
-    // Alternative approach
-    //    val p = promise[Long]()
-    //    val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
-    //    val res: Future[Seq[Long]] = Future.sequence(futureFactors)
-    //    p completeWith res.map(f => f.max)
-  }
 }
 
 object Examples extends App {
@@ -113,8 +72,8 @@ object Examples extends App {
   }
 
   futureHelloWorld
-//  promiseHelloWorld
-//  simpleTransformation
+  //  promiseHelloWorld
+  //  simpleTransformation
 }
 
 

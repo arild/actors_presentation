@@ -8,7 +8,7 @@ reveal.js comes with a broad range of features including [nested slides](https:/
 #### More reading in the Wiki:
 - [Changelog](https://github.com/hakimel/reveal.js/wiki/Changelog): Up-to-date version history.
 - [Examples](https://github.com/hakimel/reveal.js/wiki/Example-Presentations): Presentations created with reveal.js, add your own!
-- [Browser Support](https://github.com/hakimel/reveal.js/wiki/Changelog): Explanation of browser support and fallbacks.
+- [Browser Support](https://github.com/hakimel/reveal.js/wiki/Browser-Support): Explanation of browser support and fallbacks.
 
 ## rvl.io
 
@@ -35,15 +35,17 @@ Markup heirarchy needs to be ``<div class="reveal"> <div class="slides"> <sectio
 
 ### Markdown
 
-It's possible to write your slides using Markdown. To enable Markdown simply add the ```data-markdown``` attribute to your ```<section>``` elements and reveal.js will automatically load the JavaScript parser. 
+It's possible to write your slides using Markdown. To enable Markdown, add the ```data-markdown``` attribute to your ```<section>``` elements and wrap the contents in a ```<script type="text/template">``` like the example below.
 
-This is based on [data-markdown](https://gist.github.com/1343518) from [Paul Irish](https://github.com/paulirish) which in turn uses [showdown](https://github.com/coreyti/showdown/). This is sensitive to indentation (avoid mixing tabs and spaces) and line breaks (avoid consecutive breaks). Updates to come.
+This is based on [data-markdown](https://gist.github.com/1343518) from [Paul Irish](https://github.com/paulirish) which in turn uses [showdown](https://github.com/coreyti/showdown/). This is sensitive to indentation (avoid mixing tabs and spaces) and line breaks (avoid consecutive breaks).
 
 ```html
 <section data-markdown>
-	## Page title
-	
-	A paragraph with some text and a [link](http://hakim.se).
+	<script type="text/template">
+		## Page title
+		
+		A paragraph with some text and a [link](http://hakim.se).
+	</script>
 </section>
 ```
 
@@ -73,7 +75,8 @@ Reveal.initialize({
 	loop: false,
 
 	// Number of milliseconds between automatically proceeding to the 
-	// next slide, disabled when set to 0
+	// next slide, disabled when set to 0, this value can be overwritten
+	// by using a data-autoslide attribute on your slides
 	autoSlide: 0,
 
 	// Enable slide navigation via mouse wheel
@@ -83,7 +86,7 @@ Reveal.initialize({
 	rollingLinks: true,
 
 	// Transition style
-	transition: 'default' // default/cube/page/concave/linear(2d)
+	transition: 'default' // default/cube/page/concave/zoom/linear/none
 });
 ```
 
@@ -101,6 +104,8 @@ Reveal.initialize({
 		// Interpret Markdown in <section> elements
 		{ src: 'lib/js/data-markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
 		{ src: 'lib/js/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+		// Zoom in and out with Alt+click
+		{ src: 'plugin/zoom-js/zoom.js', condition: function() { return !!document.body.classList; } },
 		// Speaker notes support
 		{ src: 'plugin/speakernotes/client.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
 		{ src: '/socket.io/socket.io.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
@@ -121,13 +126,13 @@ The Reveal class provides a minimal JavaScript API for controlling navigation an
 
 ```javascript
 // Navigation
-Reveal.navigateTo( indexh, indexv );
-Reveal.navigateLeft();
-Reveal.navigateRight();
-Reveal.navigateUp();
-Reveal.navigateDown();
-Reveal.navigatePrev();
-Reveal.navigateNext();
+Reveal.slide( indexh, indexv );
+Reveal.left();
+Reveal.right();
+Reveal.up();
+Reveal.down();
+Reveal.prev();
+Reveal.next();
 Reveal.toggleOverview();
 
 // Retrieves the previous and current slide elements
@@ -228,3 +233,4 @@ You can change the appearance of the speaker notes by editing the file at `plugi
 MIT licensed
 
 Copyright (C) 2011-2012 Hakim El Hattab, http://hakim.se
+

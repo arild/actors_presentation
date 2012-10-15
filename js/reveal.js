@@ -1,5 +1,5 @@
 /*!
- * reveal.js 2.1 r26
+ * reveal.js 2.1 r33
  * http://lab.hakim.se/reveal-js
  * MIT licensed
  * 
@@ -33,7 +33,8 @@ var Reveal = (function(){
 			loop: false,
 
 			// Number of milliseconds between automatically proceeding to the 
-			// next slide, disabled when set to 0
+			// next slide, disabled when set to 0, this value can be overwritten
+			// by using a data-autoslide attribute on your slides
 			autoSlide: 0,
 
 			// Enable slide navigation via mouse wheel
@@ -43,14 +44,18 @@ var Reveal = (function(){
 			rollingLinks: true,
 
 			// Transition style (see /css/theme)
-			theme: 'default', 
+			theme: null, 
 
 			// Transition style
-			transition: 'default', // default/cube/page/concave/linear(2d),
+			transition: 'default', // default/cube/page/concave/zoom/linear/none
 
 			// Script dependencies to load
 			dependencies: []
 		},
+
+		// Stores if the next slide should be shown automatically
+		// after n milliseconds
+		autoSlide = config.autoSlide,
 
 		// The horizontal and verical index of the currently active slide
 		indexh = 0,
@@ -97,9 +102,8 @@ var Reveal = (function(){
 			startSpan: 0,
 			startCount: 0,
 			handled: false,
-			threshold: 40
+			threshold: 80
 		};
-	
 	
 	/**
 	 * Starts up the presentation if the client is capable.
@@ -116,9 +120,61 @@ var Reveal = (function(){
 		// Copy options over to our config object
 		extend( config, options );
 
-		// Cache references to DOM elements
+		// Make sure we've got all the DOM elements we need
+		setupDOM();
+
+		// Hide the address bar in mobile browsers
+		hideAddressBar();
+
+		// Loads the dependencies and continues to #start() once done
+		load();
+		
+	}
+
+	/**
+	 * Finds and stores references to DOM elements which are 
+	 * required by the presentation. If a required element is 
+	 * not found, it is created.
+	 */
+	function setupDOM() {
+		// Cache references to key DOM elements
 		dom.theme = document.querySelector( '#theme' );
 		dom.wrapper = document.querySelector( '.reveal' );
+
+		// Progress bar
+		if( !dom.wrapper.querySelector( '.progress' ) && config.progress ) {
+			var progressElement = document.createElement( 'div' );
+			progressElement.classList.add( 'progress' );
+			progressElement.innerHTML = '<span></span>';
+			dom.wrapper.appendChild( progressElement );
+		}
+
+		// Arrow controls
+		if( !dom.wrapper.querySelector( '.controls' ) && config.controls ) {
+			var controlsElement = document.createElement( 'aside' );
+			controlsElement.classList.add( 'controls' );
+			controlsElement.innerHTML = '<a class="left" href="#">&#x25C4;</a>' +
+										'<a class="right" href="#">&#x25BA;</a>' +
+										'<a class="up" href="#">&#x25B2;</a>' +
+										'<a class="down" href="#">&#x25BC;</a>';
+			dom.wrapper.appendChild( controlsElement );
+		}
+
+		// Presentation background element
+		if( !dom.wrapper.querySelector( '.state-background' ) ) {
+			var backgroundElement = document.createElement( 'div' );
+			backgroundElement.classList.add( 'state-background' );
+			dom.wrapper.appendChild( backgroundElement );
+		}
+
+		// Overlay graphic which is displayed during the paused mode
+		if( !dom.wrapper.querySelector( '.pause-overlay' ) ) {
+			var pausedElement = document.createElement( 'div' );
+			pausedElement.classList.add( 'pause-overlay' );
+			dom.wrapper.appendChild( pausedElement );
+		}
+
+		// Cache references to elements
 		dom.progress = document.querySelector( '.reveal .progress' );
 		dom.progressbar = document.querySelector( '.reveal .progress span' );
 
@@ -129,11 +185,12 @@ var Reveal = (function(){
 			dom.controlsUp = document.querySelector( '.reveal .controls .up' );
 			dom.controlsDown = document.querySelector( '.reveal .controls .down' );
 		}
+	}
 
-		// Loads the dependencies and continues to #start() once done
-		load();
-
-		// Set up hiding of the browser address bar
+	/**
+	 * Hides the address bar if we're on a mobile device.
+	 */
+	function hideAddressBar() {
 		if( navigator.userAgent.match( /(iphone|ipod|android)/i ) ) {
 			// Give the page some scrollable overflow
 			document.documentElement.style.overflow = 'scroll';
@@ -143,7 +200,6 @@ var Reveal = (function(){
 			window.addEventListener( 'load', removeAddressBar, false );
 			window.addEventListener( 'orientationchange', removeAddressBar, false );
 		}
-		
 	}
 
 	/**
@@ -171,7 +227,7 @@ var Reveal = (function(){
 
 				// Extension may contain callback functions
 				if( typeof s.callback === 'function' ) {
-					head.ready( s.src.match( /([\w\d_-]*)\.?[^\\\/]*$/i )[0], s.callback );
+					head.ready( s.src.match( /([\w\d_\-]*)\.?[^\\\/]*$/i )[0], s.callback );
 				}
 			}
 		}
@@ -229,17 +285,6 @@ var Reveal = (function(){
 			dom.progress.style.display = 'block';
 		}
 
-		// Load the theme in the config, if it's not already loaded
-		if( config.theme && dom.theme ) {
-			var themeURL = dom.theme.getAttribute( 'href' );
-			var themeFinder = /[^/]*?(?=\.css)/;
-			var themeName = themeURL.match(themeFinder)[0];
-			if(  config.theme !== themeName ) {
-				themeURL = themeURL.replace(themeFinder, config.theme);
-				dom.theme.setAttribute( 'href', themeURL );
-			}
-		}
-
 		if( config.transition !== 'default' ) {
 			dom.wrapper.classList.add( config.transition );
 		}
@@ -249,12 +294,27 @@ var Reveal = (function(){
 			document.addEventListener( 'mousewheel', onDocumentMouseScroll, false );
 		}
 
+		// 3D links
 		if( config.rollingLinks ) {
-			// Add some 3D magic to our anchors
 			linkify();
+		}
+
+		// Load the theme in the config, if it's not already loaded
+		if( config.theme && dom.theme ) {
+			var themeURL = dom.theme.getAttribute( 'href' );
+			var themeFinder = /[^\/]*?(?=\.css)/;
+			var themeName = themeURL.match(themeFinder)[0];
+
+			if(  config.theme !== themeName ) {
+				themeURL = themeURL.replace(themeFinder, config.theme);
+				dom.theme.setAttribute( 'href', themeURL );
+			}
 		}
 	}
 
+	/**
+	 * Binds all event listeners.
+	 */
 	function addEventListeners() {
 		document.addEventListener( 'touchstart', onDocumentTouchStart, false );
 		document.addEventListener( 'touchmove', onDocumentTouchMove, false );
@@ -273,6 +333,9 @@ var Reveal = (function(){
 		}
 	}
 
+	/**
+	 * Unbinds all event listeners.
+	 */
 	function removeEventListeners() {
 		document.removeEventListener( 'keydown', onDocumentKeyDown, false );
 		document.removeEventListener( 'touchstart', onDocumentTouchStart, false );
@@ -335,176 +398,16 @@ var Reveal = (function(){
 			window.scrollTo( 0, 1 );
 		}, 0 );
 	}
-	
-	/**
-	 * Handler for the document level 'keydown' event.
-	 * 
-	 * @param {Object} event
-	 */
-	function onDocumentKeyDown( event ) {
-		// Disregard the event if the target is editable or a 
-		// modifier is present
-		if ( document.querySelector( ':focus' ) !== null || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey ) return;
-				
-		var triggered = false;
-
-		switch( event.keyCode ) {
-			// p, page up
-			case 80: case 33: navigatePrev(); triggered = true; break; 
-			// n, page down
-			case 78: case 34: navigateNext(); triggered = true; break;
-			// h, left
-			case 72: case 37: navigateLeft(); triggered = true; break;
-			// l, right
-			case 76: case 39: navigateRight(); triggered = true; break;
-			// k, up
-			case 75: case 38: navigateUp(); triggered = true; break;
-			// j, down
-			case 74: case 40: navigateDown(); triggered = true; break;
-			// home
-			case 36: navigateTo( 0 ); triggered = true; break;
-			// end
-			case 35: navigateTo( Number.MAX_VALUE ); triggered = true; break;
-			// space
-			case 32: overviewIsActive() ? deactivateOverview() : navigateNext(); triggered = true; break;
-			// return
-			case 13: if( overviewIsActive() ) { deactivateOverview(); triggered = true; } break;
-		}
-
-		// If the input resulted in a triggered action we should prevent 
-		// the browsers default behavior
-		if( triggered ) {
-			event.preventDefault();
-		}
-		else if ( event.keyCode === 27 && supports3DTransforms ) {
-			toggleOverview();
-	
-			event.preventDefault();
-		}
-
-		// If auto-sliding is enabled we need to cue up 
-		// another timeout
-		cueAutoSlide();
-
-	}
 
 	/**
-	 * Handler for the document level 'touchstart' event,
-	 * enables support for swipe and pinch gestures.
+	 * Dispatches an event of the specified type from the 
+	 * reveal DOM element.
 	 */
-	function onDocumentTouchStart( event ) {
-		touch.startX = event.touches[0].clientX;
-		touch.startY = event.touches[0].clientY;
-		touch.startCount = event.touches.length;
-
-		// If there's two touches we need to memorize the distance 
-		// between those two points to detect pinching
-		if( event.touches.length === 2 ) {
-			touch.startSpan = distanceBetween( {
-				x: event.touches[1].clientX,
-				y: event.touches[1].clientY
-			}, {
-				x: touch.startX,
-				y: touch.startY
-			} );
-		}
-	}
-	
-	/**
-	 * Handler for the document level 'touchmove' event.
-	 */
-	function onDocumentTouchMove( event ) {
-		// Each touch should only trigger one action
-		if( !touch.handled ) {
-			var currentX = event.touches[0].clientX;
-			var currentY = event.touches[0].clientY;
-
-			// If the touch started off with two points and still has 
-			// two active touches; test for the pinch gesture
-			if( event.touches.length === 2 && touch.startCount === 2 ) {
-
-				// The current distance in pixels between the two touch points
-				var currentSpan = distanceBetween( {
-					x: event.touches[1].clientX,
-					y: event.touches[1].clientY
-				}, {
-					x: touch.startX,
-					y: touch.startY
-				} );
-
-				// If the span is larger than the desire amount we've got 
-				// ourselves a pinch
-				if( Math.abs( touch.startSpan - currentSpan ) > touch.threshold ) {
-					touch.handled = true;
-
-					if( currentSpan < touch.startSpan ) {
-						activateOverview();
-					}
-					else {
-						deactivateOverview();
-					}
-				}
-
-			}
-			// There was only one touch point, look for a swipe
-			else if( event.touches.length === 1 ) {
-				var deltaX = currentX - touch.startX,
-					deltaY = currentY - touch.startY;
-
-				if( deltaX > touch.threshold && Math.abs( deltaX ) > Math.abs( deltaY ) ) {
-					touch.handled = true;
-					navigateLeft();
-				} 
-				else if( deltaX < -touch.threshold && Math.abs( deltaX ) > Math.abs( deltaY ) ) {
-					touch.handled = true;
-					navigateRight();
-				} 
-				else if( deltaY > touch.threshold ) {
-					touch.handled = true;
-					navigateUp();
-				} 
-				else if( deltaY < -touch.threshold ) {
-					touch.handled = true;
-					navigateDown();
-				}
-			}
-
-			event.preventDefault();
-		}
-	}
-
-	/**
-	 * Handler for the document level 'touchend' event.
-	 */
-	function onDocumentTouchEnd( event ) {
-		touch.handled = false;
-	}
-
-	/**
-	 * Handles mouse wheel scrolling, throttled to avoid 
-	 * skipping multiple slides.
-	 */
-	function onDocumentMouseScroll( event ){
-		clearTimeout( mouseWheelTimeout );
-
-		mouseWheelTimeout = setTimeout( function() {
-			var delta = event.detail || -event.wheelDelta;
-			if( delta > 0 ) {
-				navigateNext();
-			}
-			else {
-				navigatePrev();
-			}
-		}, 100 );
-	}
-	
-	/**
-	 * Handler for the window level 'hashchange' event.
-	 * 
-	 * @param {Object} event
-	 */
-	function onWindowHashChange( event ) {
-		readURL();
+	function dispatchEvent( type, properties ) {
+		var event = document.createEvent( "HTMLEvents", 1, 2 );
+		event.initEvent( type, true, true );
+		extend( event, properties );
+		dom.wrapper.dispatchEvent( event );
 	}
 
 	/**
@@ -616,122 +519,92 @@ var Reveal = (function(){
 	}
 
 	/**
+	 * Toggles the slide overview mode on and off.
+	 *
+	 * @param {Boolean} override Optional flag which overrides the 
+	 * toggle logic and forcibly sets the desired state. True means 
+	 * overview is open, false means it's closed.
+	 */
+	function toggleOverview( override ) {
+		if( typeof override === 'boolean' ) {
+			override ? activateOverview() : deactivateOverview();
+		}
+		else {
+			isOverviewActive() ? deactivateOverview() : activateOverview();
+		}
+	}
+
+	/**
 	 * Checks if the overview is currently active.
 	 * 
 	 * @return {Boolean} true if the overview is active,
 	 * false otherwise
 	 */
-	function overviewIsActive() {
+	function isOverviewActive() {
 		return dom.wrapper.classList.contains( 'overview' );
 	}
 
 	/**
-	 * Invoked when a slide is and we're in the overview.
+	 * Handling the fullscreen functionality via the fullscreen API
+	 * 
+	 * @see http://fullscreen.spec.whatwg.org/ 
+	 * @see https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode 
 	 */
-	function onOverviewSlideClicked( event ) {
-		// TODO There's a bug here where the event listeners are not 
-		// removed after deactivating the overview.
-		if( overviewIsActive() ) {
-			event.preventDefault();
-
-			deactivateOverview();
-
-			indexh = this.getAttribute( 'data-index-h' );
-			indexv = this.getAttribute( 'data-index-v' );
-
-			slide();
+	function enterFullscreen() {
+		var element = document.body;
+		
+		// Check which implementation is available
+		var requestMethod = element.requestFullScreen ||
+							element.webkitRequestFullScreen ||
+							element.mozRequestFullScreen ||
+							element.msRequestFullScreen;
+		
+		if( requestMethod ) {
+			requestMethod.apply( element );
 		}
 	}
 
 	/**
-	 * Updates one dimension of slides by showing the slide
-	 * with the specified index.
-	 * 
-	 * @param {String} selector A CSS selector that will fetch
-	 * the group of slides we are working with
-	 * @param {Number} index The index of the slide that should be
-	 * shown
-	 * 
-	 * @return {Number} The index of the slide that is now shown,
-	 * might differ from the passed in index if it was out of 
-	 * bounds.
+	 * Enters the paused mode which fades everything on screen to 
+	 * black.
 	 */
-	function updateSlides( selector, index ) {
-		
-		// Select all slides and convert the NodeList result to
-		// an array
-		var slides = Array.prototype.slice.call( document.querySelectorAll( selector ) ),
-			slidesLength = slides.length;
-		
-		if( slidesLength ) {
+	function pause() {
+		dom.wrapper.classList.add( 'paused' );
+	}
 
-			// Should the index loop?
-			if( config.loop ) {
-				index %= slidesLength;
+	/**
+	 * Exits from the paused mode.
+	 */
+	function resume() {
+		dom.wrapper.classList.remove( 'paused' );
+	}
 
-				if( index < 0 ) {
-					index = slidesLength + index;
-				}
-			}
-			
-			// Enforce max and minimum index bounds
-			index = Math.max( Math.min( index, slidesLength - 1 ), 0 );
-			
-			for( var i = 0; i < slidesLength; i++ ) {
-				var slide = slides[i];
-
-				// Optimization; hide all slides that are three or more steps 
-				// away from the present slide
-				if( overviewIsActive() === false ) {
-					// The distance loops so that it measures 1 between the first
-					// and last slides
-					var distance = Math.abs( ( index - i ) % ( slidesLength - 3 ) ) || 0;
-
-					slide.style.display = distance > 3 ? 'none' : 'block';
-				}
-
-				slides[i].classList.remove( 'past' );
-				slides[i].classList.remove( 'present' );
-				slides[i].classList.remove( 'future' );
-
-				if( i < index ) {
-					// Any element previous to index is given the 'past' class
-					slides[i].classList.add( 'past' );
-				}
-				else if( i > index ) {
-					// Any element subsequent to index is given the 'future' class
-					slides[i].classList.add( 'future' );
-				}
-
-				// If this element contains vertical slides
-				if( slide.querySelector( 'section' ) ) {
-					slides[i].classList.add( 'stack' );
-				}
-			}
-
-			// Mark the current slide as present
-			slides[index].classList.add( 'present' );
-
-			// If this slide has a state associated with it, add it
-			// onto the current state of the deck
-			var slideState = slides[index].getAttribute( 'data-state' );
-			if( slideState ) {
-				state = state.concat( slideState.split( ' ' ) );
-			}
+	/**
+	 * Toggles the paused mode on and off.
+	 */
+	function togglePause() {
+		if( isPaused() ) {
+			resume();
 		}
 		else {
-			// Since there are no slides we can't be anywhere beyond the 
-			// zeroth index
-			index = 0;
+			pause();
 		}
-		
-		return index;
-		
+	}
+
+	/**
+	 * Checks if we are currently in the paused mode.
+	 */
+	function isPaused() {
+		return dom.wrapper.classList.contains( 'paused' );
 	}
 	
 	/**
-	 * Updates the visual slides to represent the currently
-	 * set indices. 
+	 * Steps from the current point in the presentation to the 
+	 * slide which matches the specified horizontal and vertical 
+	 * indices. 
+	 *
+	 * @param {int} h Horizontal index of the target slide
+	 * @param {int} v Vertical index of the target slide
 	 */
 	function slide( h, v ) {
 		// Remember where we were at before
@@ -777,8 +650,8 @@ var Reveal = (function(){
 			dom.progressbar.style.width = ( indexh / ( document.querySelectorAll( HORIZONTAL_SLIDES_SELECTOR ).length - 1 ) ) * window.innerWidth + 'px';
 		}
 
-		// Close the overview if it's active
-		if( overviewIsActive() ) {
+		// If the overview is active, re-activate it to update positions
+		if( isOverviewActive() ) {
 			activateOverview();
 		}
 
@@ -821,25 +694,120 @@ var Reveal = (function(){
 	}
 
 	/**
+	 * Updates one dimension of slides by showing the slide
+	 * with the specified index.
+	 * 
+	 * @param {String} selector A CSS selector that will fetch
+	 * the group of slides we are working with
+	 * @param {Number} index The index of the slide that should be
+	 * shown
+	 * 
+	 * @return {Number} The index of the slide that is now shown,
+	 * might differ from the passed in index if it was out of 
+	 * bounds.
+	 */
+	function updateSlides( selector, index ) {
+		// Select all slides and convert the NodeList result to
+		// an array
+		var slides = Array.prototype.slice.call( document.querySelectorAll( selector ) ),
+			slidesLength = slides.length;
+		
+		if( slidesLength ) {
+
+			// Should the index loop?
+			if( config.loop ) {
+				index %= slidesLength;
+
+				if( index < 0 ) {
+					index = slidesLength + index;
+				}
+			}
+			
+			// Enforce max and minimum index bounds
+			index = Math.max( Math.min( index, slidesLength - 1 ), 0 );
+			
+			for( var i = 0; i < slidesLength; i++ ) {
+				var element = slides[i];
+
+				// Optimization; hide all slides that are three or more steps 
+				// away from the present slide
+				if( isOverviewActive() === false ) {
+					// The distance loops so that it measures 1 between the first
+					// and last slides
+					var distance = Math.abs( ( index - i ) % ( slidesLength - 3 ) ) || 0;
+
+					element.style.display = distance > 3 ? 'none' : 'block';
+				}
+
+				slides[i].classList.remove( 'past' );
+				slides[i].classList.remove( 'present' );
+				slides[i].classList.remove( 'future' );
+
+				if( i < index ) {
+					// Any element previous to index is given the 'past' class
+					slides[i].classList.add( 'past' );
+				}
+				else if( i > index ) {
+					// Any element subsequent to index is given the 'future' class
+					slides[i].classList.add( 'future' );
+				}
+
+				// If this element contains vertical slides
+				if( element.querySelector( 'section' ) ) {
+					slides[i].classList.add( 'stack' );
+				}
+			}
+
+			// Mark the current slide as present
+			slides[index].classList.add( 'present' );
+
+			// If this slide has a state associated with it, add it
+			// onto the current state of the deck
+			var slideState = slides[index].getAttribute( 'data-state' );
+			if( slideState ) {
+				state = state.concat( slideState.split( ' ' ) );
+			}
+
+			// If this slide has a data-autoslide attribtue associated use this as 
+			// autoSlide value otherwise use the global configured time
+			var slideAutoSlide = slides[index].getAttribute( 'data-autoslide' );
+			if( slideAutoSlide ) {
+				autoSlide = parseInt( slideAutoSlide );
+			} else {
+				autoSlide = config.autoSlide
+			}
+
+		}
+		else {
+			// Since there are no slides we can't be anywhere beyond the 
+			// zeroth index
+			index = 0;
+		}
+		
+		return index;
+		
+	}
+
+	/**
 	 * Updates the state and link pointers of the controls.
 	 */
 	function updateControls() {
-		if ( !config.controls || !dom.controls ) {
-			return;
+		if ( config.controls && dom.controls ) {
+			
+			var routes = availableRoutes();
+
+			// Remove the 'enabled' class from all directions
+			[ dom.controlsLeft, dom.controlsRight, dom.controlsUp, dom.controlsDown ].forEach( function( node ) {
+				node.classList.remove( 'enabled' );
+			} );
+
+			// Add the 'enabled' class to the available routes
+			if( routes.left ) dom.controlsLeft.classList.add( 'enabled' );
+			if( routes.right ) dom.controlsRight.classList.add( 'enabled' );
+			if( routes.up ) dom.controlsUp.classList.add( 'enabled' );
+			if( routes.down ) dom.controlsDown.classList.add( 'enabled' );
+
 		}
-		
-		var routes = availableRoutes();
-
-		// Remove the 'enabled' class from all directions
-		[ dom.controlsLeft, dom.controlsRight, dom.controlsUp, dom.controlsDown ].forEach( function( node ) {
-			node.classList.remove( 'enabled' );
-		} );
-
-		// Add the 'enabled' class to the available routes
-		if( routes.left ) dom.controlsLeft.classList.add( 'enabled' );
-		if( routes.right ) dom.controlsRight.classList.add( 'enabled' );
-		if( routes.up ) dom.controlsUp.classList.add( 'enabled' );
-		if( routes.down ) dom.controlsDown.classList.add( 'enabled' );
 	}
 
 	/**
@@ -848,8 +816,8 @@ var Reveal = (function(){
 	 * @return {Object} containing four booleans: left/right/up/down
 	 */
 	function availableRoutes() {
-		var horizontalSlides = document.querySelectorAll( HORIZONTAL_SLIDES_SELECTOR );
-		var verticalSlides = document.querySelectorAll( VERTICAL_SLIDES_SELECTOR );
+		var horizontalSlides = document.querySelectorAll( HORIZONTAL_SLIDES_SELECTOR ),
+			verticalSlides = document.querySelectorAll( VERTICAL_SLIDES_SELECTOR );
 
 		return {
 			left: indexh > 0,
@@ -871,26 +839,26 @@ var Reveal = (function(){
 
 		// If the first bit is invalid and there is a name we can 
 		// assume that this is a named link
-		if( isNaN( parseInt( bits[0] ) ) && name.length ) {
+		if( isNaN( parseInt( bits[0], 10 ) ) && name.length ) {
 			// Find the slide with the specified name
-			var slide = document.querySelector( '#' + name );
+			var element = document.querySelector( '#' + name );
 
-			if( slide ) {
+			if( element ) {
 				// Find the position of the named slide and navigate to it
-				var indices = Reveal.getIndices( slide );
-				navigateTo( indices.h, indices.v );
+				var indices = Reveal.getIndices( element );
+				slide( indices.h, indices.v );
 			}
 			// If the slide doesn't exist, navigate to the current slide
 			else {
-				navigateTo( indexh, indexv );
+				slide( indexh, indexv );
 			}
 		}
 		else {
 			// Read the index components of the hash
-			var h = parseInt( bits[0] ) || 0,
-				v = parseInt( bits[1] ) || 0;
+			var h = parseInt( bits[0], 10 ) || 0,
+				v = parseInt( bits[1], 10 ) || 0;
 
-			navigateTo( h, v );
+			slide( h, v );
 		}
 	}
 	
@@ -912,14 +880,38 @@ var Reveal = (function(){
 	}
 
 	/**
-	 * Dispatches an event of the specified type from the 
-	 * reveal DOM element.
+	 * Retrieves the h/v location of the current, or specified, 
+	 * slide.
+	 * 
+	 * @param {HTMLElement} slide If specified, the returned 
+	 * index will be for this slide rather than the currently 
+	 * active one
+	 * 
+	 * @return {Object} { h: <int>, v: <int> }
 	 */
-	function dispatchEvent( type, properties ) {
-		var event = document.createEvent( "HTMLEvents", 1, 2 );
-		event.initEvent( type, true, true );
-		extend( event, properties );
-		dom.wrapper.dispatchEvent( event );
+	function getIndices( slide ) {
+		// By default, return the current indices
+		var h = indexh,
+			v = indexv;
+
+		// If a slide is specified, return the indices of that slide
+		if( slide ) {
+			var isVertical = !!slide.parentNode.nodeName.match( /section/gi );
+			var slideh = isVertical ? slide.parentNode : slide;
+
+			// Select all horizontal slides
+			var horizontalSlides = Array.prototype.slice.call( document.querySelectorAll( HORIZONTAL_SLIDES_SELECTOR ) );
+
+			// Now that we know which the horizontal slide is, get its index
+			h = Math.max( horizontalSlides.indexOf( slideh ), 0 );
+
+			// If this is a vertical slide, grab the vertical index
+			if( isVertical ) {
+				v = Math.max( Array.prototype.slice.call( slide.parentNode.children ).indexOf( slide ), 0 );
+			}
+		}
+
+		return { h: h, v: v };
 	}
 
 	/**
@@ -995,42 +987,35 @@ var Reveal = (function(){
 		clearTimeout( autoSlideTimeout );
 
 		// Cue the next auto-slide if enabled
-		if( config.autoSlide ) {
-			autoSlideTimeout = setTimeout( navigateNext, config.autoSlide );
+		if( autoSlide ) {
+			autoSlideTimeout = setTimeout( navigateNext, autoSlide );
 		}
-	}
-	
-	/**
-	 * Triggers a navigation to the specified indices.
-	 * 
-	 * @param {Number} h The horizontal index of the slide to show
-	 * @param {Number} v The vertical index of the slide to show
-	 */
-	function navigateTo( h, v ) {
-		slide( h, v );
 	}
 	
 	function navigateLeft() {
 		// Prioritize hiding fragments
-		if( overviewIsActive() || previousFragment() === false ) {
+		if( isOverviewActive() || previousFragment() === false ) {
 			slide( indexh - 1, 0 );
 		}
 	}
+
 	function navigateRight() {
 		// Prioritize revealing fragments
-		if( overviewIsActive() || nextFragment() === false ) {
+		if( isOverviewActive() || nextFragment() === false ) {
 			slide( indexh + 1, 0 );
 		}
 	}
+
 	function navigateUp() {
 		// Prioritize hiding fragments
-		if( overviewIsActive() || previousFragment() === false ) {
+		if( isOverviewActive() || previousFragment() === false ) {
 			slide( indexh, indexv - 1 );
 		}
 	}
+
 	function navigateDown() {
 		// Prioritize revealing fragments
-		if( overviewIsActive() || nextFragment() === false ) {
+		if( isOverviewActive() || nextFragment() === false ) {
 			slide( indexh, indexv + 1 );
 		}
 	}
@@ -1074,28 +1059,244 @@ var Reveal = (function(){
 		cueAutoSlide();
 	}
 
+
+	// --------------------------------------------------------------------//
+	// ----------------------------- EVENTS -------------------------------//
+	// --------------------------------------------------------------------//
+
+
 	/**
-	 * Toggles the slide overview mode on and off.
+	 * Handler for the document level 'keydown' event.
+	 * 
+	 * @param {Object} event
 	 */
-	function toggleOverview() {
-		if( overviewIsActive() ) {
-			deactivateOverview();
+	function onDocumentKeyDown( event ) {
+		// Disregard the event if the target is editable or a 
+		// modifier is present
+		if ( document.querySelector( ':focus' ) !== null || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey ) return;
+
+		var triggered = true;
+
+		switch( event.keyCode ) {
+			// p, page up
+			case 80: case 33: navigatePrev(); break; 
+			// n, page down
+			case 78: case 34: navigateNext(); break;
+			// h, left
+			case 72: case 37: navigateLeft(); break;
+			// l, right
+			case 76: case 39: navigateRight(); break;
+			// k, up
+			case 75: case 38: navigateUp(); break;
+			// j, down
+			case 74: case 40: navigateDown(); break;
+			// home
+			case 36: slide( 0 ); break;
+			// end
+			case 35: slide( Number.MAX_VALUE ); break;
+			// space
+			case 32: isOverviewActive() ? deactivateOverview() : navigateNext(); break;
+			// return
+			case 13: isOverviewActive() ? deactivateOverview() : triggered = false; break;
+			// b, period
+			case 66: case 190: togglePause(); break;
+			// f
+			case 70: enterFullscreen(); break;
+			default:
+				triggered = false;
 		}
-		else {
-			activateOverview();
+
+		// If the input resulted in a triggered action we should prevent 
+		// the browsers default behavior
+		if( triggered ) {
+			event.preventDefault();
+		}
+		else if ( event.keyCode === 27 && supports3DTransforms ) {
+			toggleOverview();
+	
+			event.preventDefault();
+		}
+
+		// If auto-sliding is enabled we need to cue up 
+		// another timeout
+		cueAutoSlide();
+
+	}
+
+	/**
+	 * Handler for the document level 'touchstart' event,
+	 * enables support for swipe and pinch gestures.
+	 */
+	function onDocumentTouchStart( event ) {
+		touch.startX = event.touches[0].clientX;
+		touch.startY = event.touches[0].clientY;
+		touch.startCount = event.touches.length;
+
+		// If there's two touches we need to memorize the distance 
+		// between those two points to detect pinching
+		if( event.touches.length === 2 && config.overview ) {
+			touch.startSpan = distanceBetween( {
+				x: event.touches[1].clientX,
+				y: event.touches[1].clientY
+			}, {
+				x: touch.startX,
+				y: touch.startY
+			} );
 		}
 	}
 	
-	// Expose some methods publicly
+	/**
+	 * Handler for the document level 'touchmove' event.
+	 */
+	function onDocumentTouchMove( event ) {
+		// Each touch should only trigger one action
+		if( !touch.handled ) {
+			var currentX = event.touches[0].clientX;
+			var currentY = event.touches[0].clientY;
+
+			// If the touch started off with two points and still has 
+			// two active touches; test for the pinch gesture
+			if( event.touches.length === 2 && touch.startCount === 2 && config.overview ) {
+
+				// The current distance in pixels between the two touch points
+				var currentSpan = distanceBetween( {
+					x: event.touches[1].clientX,
+					y: event.touches[1].clientY
+				}, {
+					x: touch.startX,
+					y: touch.startY
+				} );
+
+				// If the span is larger than the desire amount we've got 
+				// ourselves a pinch
+				if( Math.abs( touch.startSpan - currentSpan ) > touch.threshold ) {
+					touch.handled = true;
+
+					if( currentSpan < touch.startSpan ) {
+						activateOverview();
+					}
+					else {
+						deactivateOverview();
+					}
+				}
+
+				event.preventDefault();
+
+			}
+			// There was only one touch point, look for a swipe
+			else if( event.touches.length === 1 && touch.startCount !== 2 ) {
+
+				var deltaX = currentX - touch.startX,
+					deltaY = currentY - touch.startY;
+
+				if( deltaX > touch.threshold && Math.abs( deltaX ) > Math.abs( deltaY ) ) {
+					touch.handled = true;
+					navigateLeft();
+				} 
+				else if( deltaX < -touch.threshold && Math.abs( deltaX ) > Math.abs( deltaY ) ) {
+					touch.handled = true;
+					navigateRight();
+				} 
+				else if( deltaY > touch.threshold ) {
+					touch.handled = true;
+					navigateUp();
+				} 
+				else if( deltaY < -touch.threshold ) {
+					touch.handled = true;
+					navigateDown();
+				}
+
+				event.preventDefault();
+
+			}
+		}
+		// There's a bug with swiping on some Android devices unless 
+		// the default action is always prevented
+		else if( navigator.userAgent.match( /android/gi ) ) {
+			event.preventDefault();
+		}
+	}
+
+	/**
+	 * Handler for the document level 'touchend' event.
+	 */
+	function onDocumentTouchEnd( event ) {
+		touch.handled = false;
+	}
+
+	/**
+	 * Handles mouse wheel scrolling, throttled to avoid 
+	 * skipping multiple slides.
+	 */
+	function onDocumentMouseScroll( event ){
+		clearTimeout( mouseWheelTimeout );
+
+		mouseWheelTimeout = setTimeout( function() {
+			var delta = event.detail || -event.wheelDelta;
+			if( delta > 0 ) {
+				navigateNext();
+			}
+			else {
+				navigatePrev();
+			}
+		}, 100 );
+	}
+	
+	/**
+	 * Handler for the window level 'hashchange' event.
+	 * 
+	 * @param {Object} event
+	 */
+	function onWindowHashChange( event ) {
+		readURL();
+	}
+
+	/**
+	 * Invoked when a slide is and we're in the overview.
+	 */
+	function onOverviewSlideClicked( event ) {
+		// TODO There's a bug here where the event listeners are not 
+		// removed after deactivating the overview.
+		if( isOverviewActive() ) {
+			event.preventDefault();
+
+			deactivateOverview();
+
+			indexh = this.getAttribute( 'data-index-h' );
+			indexv = this.getAttribute( 'data-index-v' );
+
+			slide();
+		}
+	}
+
+	
+	// --------------------------------------------------------------------//
+	// ------------------------------- API --------------------------------//
+	// --------------------------------------------------------------------//
+
+
 	return {
 		initialize: initialize,
-		navigateTo: navigateTo,
+		
+		// Navigation methods
+		slide: slide,
+		left: navigateLeft,
+		right: navigateRight,
+		up: navigateUp,
+		down: navigateDown,
+		prev: navigatePrev,
+		next: navigateNext,
+
+		// Deprecated aliases
+		navigateTo: slide,
 		navigateLeft: navigateLeft,
 		navigateRight: navigateRight,
 		navigateUp: navigateUp,
 		navigateDown: navigateDown,
 		navigatePrev: navigatePrev,
 		navigateNext: navigateNext,
+
+		// Toggles the overview mode on/off
 		toggleOverview: toggleOverview,
 
 		// Adds or removes all internal event listeners (such as keyboard)
@@ -1103,30 +1304,7 @@ var Reveal = (function(){
 		removeEventListeners: removeEventListeners,
 
 		// Returns the indices of the current, or specified, slide
-		getIndices: function( slide ) {
-			// By default, return the current indices
-			var h = indexh,
-				v = indexv;
-
-			// If a slide is specified, return the indices of that slide
-			if( slide ) {
-				var isVertical = !!slide.parentNode.nodeName.match( /section/gi );
-				var slideh = isVertical ? slide.parentNode : slide;
-
-				// Select all horizontal slides
-				var horizontalSlides = Array.prototype.slice.call( document.querySelectorAll( HORIZONTAL_SLIDES_SELECTOR ) );
-
-				// Now that we know which the horizontal slide is, get its index
-				h = Math.max( horizontalSlides.indexOf( slideh ), 0 );
-
-				// If this is a vertical slide, grab the vertical index
-				if( isVertical ) {
-					v = Math.max( Array.prototype.slice.call( slide.parentNode.children ).indexOf( slide ), 0 );
-				}
-			}
-
-			return { h: h, v: v };
-		},
+		getIndices: getIndices,
 
 		// Returns the previous slide element, may be null
 		getPreviousSlide: function() {

@@ -13,19 +13,19 @@
  * RESET STYLES
  *********************************************/
 
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
+html, body, .reveal div, .reveal span, .reveal applet, .reveal object, .reveal iframe,
+.reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6, .reveal p, .reveal blockquote, .reveal pre,
+.reveal a, .reveal abbr, .reveal acronym, .reveal address, .reveal big, .reveal cite, .reveal code,
+.reveal del, .reveal dfn, .reveal em, .reveal img, .reveal ins, .reveal kbd, .reveal q, .reveal s, .reveal samp,
+.reveal small, .reveal strike, .reveal strong, .reveal sub, .reveal sup, .reveal tt, .reveal var,
+.reveal b, .reveal u, .reveal i, .reveal center,
+.reveal dl, .reveal dt, .reveal dd, .reveal ol, .reveal ul, .reveal li,
+.reveal fieldset, .reveal form, .reveal label, .reveal legend,
+.reveal table, .reveal caption, .reveal tbody, .reveal tfoot, .reveal thead, .reveal tr, .reveal th, .reveal td,
+.reveal article, .reveal aside, .reveal canvas, .reveal details, .reveal embed, 
+.reveal figure, .reveal figcaption, .reveal footer, .reveal header, .reveal hgroup, 
+.reveal menu, .reveal nav, .reveal output, .reveal ruby, .reveal section, .reveal summary,
+.reveal time, .reveal mark, .reveal audio, video {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -34,8 +34,8 @@ time, mark, audio, video {
 	vertical-align: baseline;
 }
 
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
+.reveal article, .reveal aside, .reveal details, .reveal figcaption, .reveal figure, 
+.reveal footer, .reveal header, .reveal hgroup, .reveal menu, .reveal nav, .reveal section {
 	display: block;
 }
 
@@ -46,8 +46,6 @@ footer, header, hgroup, menu, nav, section {
 
 html, 
 body {
-	padding: 0;
-	margin: 0;
 	width: 100%;
 	height: 100%;
 	min-height: 600px;
@@ -59,16 +57,16 @@ body {
 	line-height: 1;
 }
 
-@media screen and (max-width: 900px) {
-	body {
-		font-size: 30px;
-	}
-}
-
 ::selection { 
 	background:#FF5E99; 
 	color:#fff; 
 	text-shadow: none; 
+}
+
+@media screen and (max-width: 900px) {
+	.reveal {
+		font-size: 30px;
+	}
 }
 
 /*********************************************
@@ -412,6 +410,7 @@ body {
 	margin-top: -320px;
 	padding: 20px 0px;
 	overflow: visible;
+	z-index: 1;
 	
 	text-align: center;
 
@@ -539,6 +538,56 @@ body {
 
 
 /*********************************************
+ * ZOOM TRANSITION
+ *********************************************/
+
+.reveal.zoom .slides>section,
+.reveal.zoom .slides>section>section {
+	-webkit-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	   -moz-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	    -ms-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	     -o-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	        transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+}
+
+.reveal.zoom .slides>section.past {
+	opacity: 0;
+	visibility: hidden;
+
+	-webkit-transform: scale(16);
+	   -moz-transform: scale(16);
+	    -ms-transform: scale(16);
+	     -o-transform: scale(16);
+	        transform: scale(16);
+}
+.reveal.zoom .slides>section.future {
+	opacity: 0;
+	visibility: hidden;
+
+	-webkit-transform: scale(0.2);
+	   -moz-transform: scale(0.2);
+	    -ms-transform: scale(0.2);
+	     -o-transform: scale(0.2);
+	        transform: scale(0.2);
+}
+
+.reveal.zoom .slides>section>section.past {
+	-webkit-transform: translate(0, -150%);
+	   -moz-transform: translate(0, -150%);
+	    -ms-transform: translate(0, -150%);
+	     -o-transform: translate(0, -150%);
+	        transform: translate(0, -150%);
+}
+.reveal.zoom .slides>section>section.future {
+	-webkit-transform: translate(0, 150%);
+	   -moz-transform: translate(0, 150%);
+	    -ms-transform: translate(0, 150%);
+	     -o-transform: translate(0, 150%);
+	        transform: translate(0, 150%);
+}
+
+
+/*********************************************
  * LINEAR TRANSITION
  *********************************************/
 
@@ -578,12 +627,10 @@ body {
  *********************************************/
 
 .reveal.cube .slides {
-	margin-top: -350px;
-
-	-webkit-perspective-origin: 50% 25%;
-	   -moz-perspective-origin: 50% 25%;
-	    -ms-perspective-origin: 50% 25%;
-	        perspective-origin: 50% 25%;
+	-webkit-perspective-origin: 0% 25%;
+	   -moz-perspective-origin: 0% 25%;
+	    -ms-perspective-origin: 0% 25%;
+	        perspective-origin: 0% 25%;
 
 	-webkit-perspective: 1300px;
 	   -moz-perspective: 1300px;
@@ -611,7 +658,7 @@ body {
 		height: 100%;
 		left: 0;
 		top: 0;
-		background: #232628;
+		background: rgba(0,0,0,0.1);
 		border-radius: 4px;
 
 		-webkit-transform: translateZ( -20px );
@@ -700,12 +747,10 @@ body {
  *********************************************/
 
 .reveal.page .slides {
-	margin-top: -350px;
-
-	-webkit-perspective-origin: 50% 50%;
- 	   -moz-perspective-origin: 50% 50%;
- 	    -ms-perspective-origin: 50% 50%;
- 	        perspective-origin: 50% 50%;
+	-webkit-perspective-origin: 0% 50%;
+ 	   -moz-perspective-origin: 0% 50%;
+ 	    -ms-perspective-origin: 0% 50%;
+ 	        perspective-origin: 0% 50%;
 
 	-webkit-perspective: 3000px;
 	   -moz-perspective: 3000px;
@@ -731,7 +776,7 @@ body {
 		height: 100%;
 		left: 0;
 		top: 0;
-		background: rgba(0,0,0,0.2);
+		background: rgba(0,0,0,0.1);
 
 		-webkit-transform: translateZ( -20px );
 		   -moz-transform: translateZ( -20px );
@@ -811,7 +856,7 @@ body {
 
 
 /*********************************************
- * TILE-FLIP TRANSITION
+ * TILE-FLIP TRANSITION (CSS shader)
  *********************************************/
 
 .reveal.tileflip .slides section.present {
@@ -861,6 +906,25 @@ body {
 
 
 /*********************************************
+ * NO TRANSITION
+ *********************************************/
+
+.reveal.none .slides section {
+	-webkit-transform: none;
+	   -moz-transform: none;
+	    -ms-transform: none;
+	     -o-transform: none;
+	        transform: none;
+
+	-webkit-transition: none;
+	   -moz-transition: none;
+	    -ms-transition: none;
+	     -o-transition: none;
+	        transition: none;
+}
+
+
+/*********************************************
  * OVERVIEW
  *********************************************/
 
@@ -905,6 +969,33 @@ body {
 
 
 /*********************************************
+ * PAUSED MODE
+ *********************************************/
+
+.reveal .pause-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: black;
+	visibility: hidden;
+	opacity: 0;
+	z-index: 100;
+
+	-webkit-transition: all 1s ease;
+	   -moz-transition: all 1s ease;
+	    -ms-transition: all 1s ease;
+	     -o-transition: all 1s ease;
+	        transition: all 1s ease;
+}
+.reveal.paused .pause-overlay {
+	visibility: visible;
+	opacity: 1;
+}
+
+
+/*********************************************
  * FALLBACK
  *********************************************/
 
@@ -928,10 +1019,10 @@ body {
 
 
 /*********************************************
- * DEFAULT STATES
+ * BACKGROUND STATES
  *********************************************/
 
-.state-background {
+.reveal .state-background {
 	position: absolute;
 	width: 100%;
 	height: 100%;
@@ -943,13 +1034,13 @@ body {
 	     -o-transition: background 800ms ease;
 	        transition: background 800ms ease;
 }
-.alert .state-background {
+.alert .reveal .state-background {
 	background: rgba( 200, 50, 30, 0.6 );
 }
-.soothe .state-background {
+.soothe .reveal .state-background {
 	background: rgba( 50, 200, 90, 0.4 );
 }
-.blackout .state-background {
+.blackout .reveal .state-background {
 	background: rgba( 0, 0, 0, 0.6 );
 }
 

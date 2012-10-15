@@ -57,10 +57,10 @@ object MyPromises {
   }
 
   def findMaxFactorOfAllMaxFactorsInParallel(work: Seq[FactorNumber]): Promise[Long] = {
-	val p = promise[Long]()
-	val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
+    val p = promise[Long]()
+    val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
     p completeWith Future.fold(futureFactors)(0L)((r, c) => Math.max(r, c))
-    
+
     // Alternative approach
     //    val p = promise[Long]()
     //    val futureFactors: Seq[Future[Long]] = work.map(w => future { w.perform.max })
@@ -73,17 +73,29 @@ object Examples extends App {
 
   def futureHelloWorld() = {
     println("Test print before future")
-    val s = "Hello"
+    val s = "hello"
     val f = future {
-      Thread.sleep(1000);
+      Thread.sleep(10)
       s + " future!"
     }
-    f onSuccess { case v => println(v) }
     println("Test print after future")
-    Await.ready(f, Duration.Inf) // Blocks until future is ready
+    f onSuccess { case s => println(s) } //Completely asynchronous
+    Await.ready(f, Duration.Inf) //Blocks until the future is ready
   }
 
-  def simpleTransformations() = {
+  def promiseHelloWorld() = {
+    val f = future {
+      Thread.sleep(10)
+      println("Computing sum...")
+      new SumSequence(0, 2).perform
+    }
+    val p = promise[Int]()
+    p completeWith f
+    val result = Await.result(p.future, Duration.Inf)
+    println("Sum = " + result)
+  }
+
+  def simpleTransformation() = {
     val f1 = future {
       Thread.sleep(1000)
       println("Original future done")
@@ -101,7 +113,8 @@ object Examples extends App {
   }
 
   futureHelloWorld
-  //simpleTransformations
+//  promiseHelloWorld
+//  simpleTransformation
 }
 
 

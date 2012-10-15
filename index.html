@@ -38,7 +38,7 @@
 <div class="slides">
     <section>
 	<h1>Concurrency abstractions in Scala</h1>
-	<p>https://github.com/arild/actors_presentation.git</p>
+	<p>https://github.com/arild/actors_presentation</p>
         <p>Arild Nilsen<br>Sjur Millidahl</p>
 	<br>
 	<p>October, 2012</p>
@@ -66,7 +66,6 @@
         <h2>Actors</h2>
         <ul>
         <li class="fragment">Lightweight processes</li>
-        <li class="fragment">Isolated from other processes</li>
         <li class="fragment">No shared state</li>
         <li class="fragment">Inherently concurrent</li>
         <li class="fragment">Communicate using asynchronous messages</li>
@@ -76,7 +75,7 @@
     </section>
 
     <section>
-        <h2>Akkar</h2>
+        <h2>Akkar - Actors of the real world!</h2>
 	<ul>
 	    <li class="fragment">"Todarodes sagittatus" has 10 tentacles and likes to swim with other Akkars</li>
 	    <li class="fragment">An Akkar has a highly complex nervous system, only part of which is localized in its brain</li>
@@ -87,14 +86,14 @@
 
     <section>
         <h2>Example Actor</h2>
-        <div class="fragment"><p><pre><code>
-import scala.actors.Actor
-class myActor extends Actor {
+        <div class="fragment"><p><pre><code>import scala.actors.Actor
+
+class MyActor extends Actor {
   def act(){
     receive {
       case s: String => sender ! response
   }
-}</code></pre></p></div>
+}</code></pre></p></div><br />
 <div class="fragment"><p><code><pre>
 val actor = new MyActor
 actor.start
@@ -132,12 +131,11 @@ actor ! "hello"</pre></code></p></div>
         <li class="fragment">git clone https://github.com/arild/actors_presentation.git</li>
         <li class="fragment">git checkout actors</li>
         <li class="fragment">Complete predefined tests for Actor and implementation of Actor</li>
-        <li class="fragment">git checkout actors-solved</li>
         </ul>
     </section>
 
     <section>
-        <h2>Futures</h2>
+        <h2>Futures and Promises</h2>
         <ul>
         <li class="fragment">SIP-14 - redesign of scala.concurrent</li>
         <li class="fragment">Placeholder object for a result that doesn’t yet exist</li>
@@ -146,21 +144,24 @@ actor ! "hello"</pre></code></p></div>
 
     <section>
         <h2>SIP-14 definition</h2>
-        <ul>
-        <li class="fragment">A Future is a head-handle to a single value (read-many) that may be available within a specific time-frame</li>
-        <li class="fragment">A Promise is a write-handle to a single value (write-once) that should be made available within a specific time-frame</li>
-        <li class="fragment">http://skillsmatter.com/podcast/scala/the-future-i-was-promised</li>
-        </ul>
+        <div class="fragment"><p><blockquote width="900" cite="http://skillsmatter.com/podcast/scala/the-future-i-was-promised">A Future is a read-handle to a single value (read-many) that may be available within a specific time-frame</blockquote></p></div>
+        <div class="fragment"><p><blockquote width="900" cite="http://skillsmatter.com/podcast/scala/the-future-i-was-promised">A Promise is a write-handle to a single value (write-once) that should be made available within a specific time-frame</blockquote></p></div>
+        <div class="fragment"><p>http://skillsmatter.com/podcast/scala/the-future-i-was-promised</p></div>
     </section>
 
     <section>
-        <h2>Future monadic Operations</h2>
-        <ul>
-        <li class="fragment"><code>def foreach[U](f: T => U): Unit</code></li>
-        <li class="fragment"><code>def map[S](f: T => S): Future[S]</code></li>
-        <li class="fragment"><code>def flatMap[S](f: T => Future[S]): Future[S]</code></li>
-        <li class="fragment"><code>def filter(p: T => Boolean): Future[T]</code></li>
-        </ul>
+        <h2>Basic Operations on Futures</h2>
+	<div class="fragment">
+        <p>
+        <code><pre>def foreach[U](f: T => U): Unit
+
+def map[S](f: T => S): Future[S]
+
+def flatMap[S](f: T => Future[S]): Future[S]
+
+def filter(p: T => Boolean): Future[T]</pre></code>
+        </p>
+	</div>
     </section>
 
     <section>
@@ -186,20 +187,25 @@ hello world!
         <h2>Promise code example</h2>
         <div class="fragment"><p  class="fragment"><code><pre>
 val f = future {
-  new SumSequence(0, 1).perform
+  Thread.sleep(10)
+  println("Computing sum ..")
+  new SumSequence(0, 2).perform
 }
 val p = promise[Int]()
 p completeWith f
-p.f onSuccess { case s => println("Result " + s) }
+val result = Await.result(p.future, Duration.Inf)
+println("sum = " + result)
 </pre></code></p></div>
+       <div class="fragment"><p>Output: <br /><pre><code>Computing sum ..
+sum = 3</code></pre></p></div>
     </section>
 
     <section>
         <h2>Do exersices</h2>
         <ul>
         <li class="fragment">git checkout futures</li>
-        <li class="fragment">Complete predefined tests for Futures and implementation of Future</li>
-        <li class="fragment">git checkout futures-solved</li>
+        <li class="fragment">Keep your promises - make the tests green!</li>
+        <li class="fragment">If stuck or finished: git checkout master</li>
         </ul>
     </section>
 </div>			

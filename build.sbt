@@ -1,4 +1,4 @@
-name := "Actors Presentation"
+name := "Actors Presentation Futures"
 
 scalaVersion := "2.10.0-M7"
 

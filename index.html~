@@ -93,6 +93,7 @@ class MyActor extends Actor {
   def act(){
     receive {
       case s: String => sender ! response
+    }
   }
 }</code></pre></p></div><br />
 <div class="fragment"><p><code><pre>
